@@ -36,12 +36,13 @@ func (p *Probe) Check(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
-		url,
+		target,
 		nil,
 	)
 	if err != nil {
 		return Result{
-			URL:          url,
+			URL:          target,
+			Target:       url,
 			Status:       0,
 			ResponseTime: 0,
 			Err:          err.Error(),
@@ -51,15 +52,15 @@ func (p *Probe) Check(
 	resp, err := p.client.Do(req)
 	if err != nil {
 		return Result{
-			URL:    url,
-			Target: target,
+			URL:    target,
+			Target: url,
 			Err:    err.Error(),
 		}
 	}
 	defer resp.Body.Close()
 	return Result{
-		URL:          url,
-		Target:       target,
+		URL:          target,
+		Target:       url,
 		Status:       resp.StatusCode,
 		ResponseTime: time.Since(start),
 	}

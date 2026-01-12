@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -15,7 +16,15 @@ import (
 )
 
 func main() {
-	targets := []config.Target{ //create a new config with the targets
+	// 1️⃣ Global STOP button
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// 2️⃣ Create Probe
+	p := probe.NewProbe(5 * time.Second)
+
+	// 3️⃣ Define targets (hardcoded approach)
+	targets := []config.Target{
 		{
 			Name:     "google",
 			URL:      "https://google.com",
@@ -27,48 +36,69 @@ func main() {
 			Interval: 10 * time.Second,
 		},
 	}
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
-	//root context for the application
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // cancel the context when the application is shutdown
 
-	//create a new probe
-	p := probe.NewProbe(5 * time.Second)
-
-	//Create a channel to receive the results of the probes
+	// 4️⃣ Results channel
 	results := make(chan probe.Result)
 
-	//start the scheduler
-	go scheduler.Start(ctx, p, targets, results)
+	// 5️⃣ WaitGroup for scheduler workers
+	var wg sync.WaitGroup
 
-	//listen for shutdown signals
+	// 6️⃣ Start scheduler
+	go scheduler.Start(ctx, p, targets, results, &wg)
+
+	// 7️⃣ Consume results
 	go func() {
 		for res := range results {
-			if res.Err != "nil" {
-				fmt.Println("Error: ", res.Target, "Failed with error: ", res.Err)
-			} else {
+			if res.Err != "" {
 				fmt.Printf(
-					"❌ %s (%s) failed with error: %v\n",
+					"❌ %s (%s) failed: %v\n",
 					res.Target,
 					res.URL,
 					res.Err,
 				)
+			} else {
+				fmt.Printf(
+					"✅ %s (%s) status=%d latency=%s\n",
+					res.Target,
+					res.URL,
+					res.Status,
+					res.ResponseTime,
+				)
 			}
 		}
-		go func() {
-			fmt.Println("Health server running on :8080")
-			http.ListenAndServe(":8080", nil)
-		}()
 	}()
 
-	//wait for the context to be cancelled
-	sigCh := make(chan os.Signal, 1)                      // channel to listen for shutdown signals
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM) // listen for interrupt and term signals
-	<-sigCh                                               // wait for a signal to shutdown the application
-	println("shut down signal received")
-	cancel() // cancel the context
-	fmt.Println("Application shut down")
+	// 8️⃣ Health server
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
+	server := &http.Server{
+		Addr: ":8080",
+	}
+
+	go func() {
+		fmt.Println("Health server running on :8080")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Println("HTTP server error:", err)
+		}
+	}()
+
+	// 9️⃣ Wait for shutdown signal
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-sigCh
+
+	fmt.Println("Shutdown signal received")
+
+	// 10️⃣ Trigger graceful shutdown
+	cancel()
+
+	// Shutdown HTTP server
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelShutdown()
+	server.Shutdown(shutdownCtx)
+
+	fmt.Println("Application shut down gracefully")
 }
