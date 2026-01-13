@@ -14,6 +14,7 @@ import (
 	"github.com/Govindpsd/api-monitoring-platform/internal/metrics"
 	"github.com/Govindpsd/api-monitoring-platform/internal/probe"
 	"github.com/Govindpsd/api-monitoring-platform/internal/scheduler"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -77,18 +78,25 @@ func main() {
 		}
 	}()
 
-	// 8️⃣ Health server
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+	// // 8️⃣ Health server
+	// http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+	// 	w.WriteHeader(http.StatusOK)
+	// 	w.Write([]byte("ok"))
+	// })
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+	mux.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
-		Addr: ":8080",
+		Addr:    ":8080",
+		Handler: mux,
 	}
 
 	go func() {
-		fmt.Println("Health server running on :8080")
+		fmt.Println("HTTP server running on :8080")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Println("HTTP server error:", err)
 		}
