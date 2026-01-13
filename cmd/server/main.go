@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Govindpsd/api-monitoring-platform/internal/config"
+	"github.com/Govindpsd/api-monitoring-platform/internal/metrics"
 	"github.com/Govindpsd/api-monitoring-platform/internal/probe"
 	"github.com/Govindpsd/api-monitoring-platform/internal/scheduler"
 )
@@ -43,28 +44,36 @@ func main() {
 	// 5️⃣ WaitGroup for scheduler workers
 	var wg sync.WaitGroup
 
+	// 5️⃣ Register metrics
+	metrics.Register()
+
 	// 6️⃣ Start scheduler
 	go scheduler.Start(ctx, p, targets, results, &wg)
 
 	// 7️⃣ Consume results
 	go func() {
 		for res := range results {
+			metrics.ProbeTotal.WithLabelValues(res.Target).Inc()
 			if res.Err != "" {
+				metrics.ProbeFailures.WithLabelValues(res.Target).Inc()
 				fmt.Printf(
 					"❌ %s (%s) failed: %v\n",
 					res.Target,
 					res.URL,
 					res.Err,
 				)
-			} else {
-				fmt.Printf(
-					"✅ %s (%s) status=%d latency=%s\n",
-					res.Target,
-					res.URL,
-					res.Status,
-					res.ResponseTime,
-				)
+				continue
 			}
+			// Record latency for successful probes
+			metrics.ProbeLatency.WithLabelValues(res.Target).Observe(res.ResponseTime.Seconds())
+
+			fmt.Printf(
+				"✅ %s (%s) status=%d latency=%s\n",
+				res.Target,
+				res.URL,
+				res.Status,
+				res.ResponseTime,
+			)
 		}
 	}()
 
