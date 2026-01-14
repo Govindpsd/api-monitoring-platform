@@ -3,17 +3,13 @@ global:
 
 route:
   receiver: "gmail-alerts"
-  group_by: ["alertname"]
-  group_wait: 10s
-  group_interval: 1m
-  repeat_interval: 10m
 
 receivers:
 - name: "gmail-alerts"
   email_configs:
-  - to: "pgovind887@gmail.com"
-    from: "pgovind887@gmail.com"
+  - to: "${ALERT_EMAIL_TO}"
+    from: "${ALERT_EMAIL_FROM}"
     smarthost: "smtp.gmail.com:587"
-    auth_username: "pgovind887@gmail.com"
-    auth_password: "voxjrljibjyfjdqw"
+    auth_username: "${GMAIL_USERNAME}"
+    auth_password: "${GMAIL_APP_PASSWORD}"
     require_tls: true
