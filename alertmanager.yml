@@ -1,0 +1,19 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: "gmail-alerts"
+  group_by: ["alertname"]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 10m
+
+receivers:
+- name: "gmail-alerts"
+  email_configs:
+  - to: "pgovind887@gmail.com"
+    from: "pgovind887@gmail.com"
+    smarthost: "smtp.gmail.com:587"
+    auth_username: "pgovind887@gmail.com"
+    auth_password: "voxjrljibjyfjdqw"
+    require_tls: true

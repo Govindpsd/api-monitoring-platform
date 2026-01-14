@@ -37,6 +37,11 @@ func main() {
 			URL:      "https://github.com",
 			Interval: 10 * time.Second,
 		},
+		{
+			Name:     "Select Care API",
+			URL:      "https://scc-triage-predictor-api-v2.cfapps.us10.hana.ondemand.com/api/predictor",
+			Interval: 10 * time.Second,
+		},
 	}
 
 	// 4️⃣ Results channel

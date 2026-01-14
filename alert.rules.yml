@@ -1,0 +1,13 @@
+groups:
+- name: api-monitoring-alerts
+  rules:
+
+  - alert: ProbeFailureDetected
+    expr: rate(probe_failures_total[1m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "API probe failures detected"
+      description: "One or more API probes are failing."
+

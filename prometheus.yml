@@ -1,7 +1,17 @@
 global:
   scrape_interval: 5s
 
+rule_files:
+  - "alert.rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - host.docker.internal:9093
+
 scrape_configs:
-  - job_name: 'api-monitoring-platform'
+  - job_name: "api-monitoring-platform"
     static_configs:
-      - targets: ['host.docker.internal:8080']
+      - targets:
+          - host.docker.internal:8080
