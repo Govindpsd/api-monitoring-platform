@@ -43,7 +43,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana:/etc/grafana/provisioning
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
     depends_on:
       - prometheus
     restart: unless-stopped
