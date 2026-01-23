@@ -35,6 +35,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/api-monitoring:latest
-            ghcr.io/${{ github.repository_owner }}/api-monitoring:${{ github.sha }}
-
+            ghcr.io/govindpsd/api-monitoring:latest
+            ghcr.io/govindpsd/api-monitoring:${{ github.sha }}
