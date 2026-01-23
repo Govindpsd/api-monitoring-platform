@@ -1,0 +1,12 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: api-monitoring-cluster
+nodes:
+  - role: control-plane
+    extraPortMappings:
+    - containerPort: 30080
+      hostPort: 8080
+    - containerPort: 30090
+      hostPort: 9090
+    - containerPort: 30300
+      hostPort: 3000
