@@ -8,7 +8,7 @@ spec:
 
   source:
     repoURL: https://github.com/Govindpsd/api-monitoring-platform.git
-    targetRevision: master
+    targetRevision: feat/gitops-structure
     path: deployments/k8s/api-monitoring
 
   destination:
