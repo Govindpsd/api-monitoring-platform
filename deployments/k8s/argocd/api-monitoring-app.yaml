@@ -5,10 +5,17 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://github.com/Govindpsd/api-monitoring-platform.git
-    targetRevision: HEAD
-    path: deployments/k8s/argocd/api-monitoring-app.yaml
+    targetRevision: master
+    path: deployments/k8s/api-monitoring
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: api-monitoring
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-monitoring
+  labels:
+    app: api-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-monitoring
+  template:
+    metadata:
+      labels:
+        app: api-monitoring
+    spec:
+      containers:
+        - name: api-monitoring
+          image: ghcr.io/govindpsd/api-monitoring:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
