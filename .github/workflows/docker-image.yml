@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and push Docker image (multi-arch)
 
 on:
   push:
@@ -34,6 +34,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/govindpsd/api-monitoring:latest
             ghcr.io/govindpsd/api-monitoring:${{ github.sha }}
