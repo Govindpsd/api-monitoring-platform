@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Govindpsd/api-monitoring-platform.git
+    targetRevision: feat/gitops-structure
+    path: /observability/prometheus
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default

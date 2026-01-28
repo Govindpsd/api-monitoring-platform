@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Govindpsd/api-monitoring-platform.git
+    targetRevision: feat/gitops-structure
+    path: observability/grafana
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
